@@ -24,7 +24,7 @@ io.adapter(createAdapter());
 // Middleware
 app.use(
   cors({
-    origin: SERVER_CONFIG.FRONTEND_ORIGINS,
+    origin: '*',
     credentials: true,
   })
 );
