@@ -6,7 +6,10 @@ import { v4 as uuidv4 } from "uuid";
 import { RoomManager } from "./modules/RoomManager.js";
 import { SignalingHandler } from "./modules/SignalingHandler.js";
 import { SERVER_CONFIG, SOCKET_EVENTS } from "./constants/index.js";
-
+import { setupWorker } from "@socket.io/sticky";
+import { createAdapter } from "@socket.io/cluster-adapter";
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -16,6 +19,7 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+io.adapter(createAdapter());
 
 // Middleware
 app.use(
@@ -82,12 +86,12 @@ io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
     signalingHandler.handleDisconnection(socket);
   });
   socket.on("start-recording", (data) => {
-    const { roomId,takeId } = data;
-    const scheduledTime = Date.now() + (1000 * 5);
+    const { roomId, takeId } = data;
+    const scheduledTime = Date.now() + 1000 * 5;
 
     socket.to(roomId).emit("start-recording", {
       scheduledTime,
-      takeId
+      takeId,
     });
   });
 });
@@ -120,6 +124,7 @@ process.on("SIGTERM", () => {
   });
 });
 
+setupWorker(io);
 // Start server
 server.listen(SERVER_CONFIG.PORT, () => {
   console.log(
